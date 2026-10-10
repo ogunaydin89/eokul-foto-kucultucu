@@ -1,0 +1,5 @@
+bottle==0.13.4
+pywebview
+opencv-python-headless==4.9.0.80
+numpy==1.26.4
+Pillow==12.3.0

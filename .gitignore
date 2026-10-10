@@ -1,0 +1,19 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+
+# Environments & Runtime
+.venv/
+venv/
+python_runtime/
+*.exe
+
+# Build & OS
+build/
+dist/
+.DS_Store
+.idea/
+.vscode/
+*.swp

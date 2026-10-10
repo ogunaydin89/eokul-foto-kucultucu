@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Okul Fotoğraf Küçültücü</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="cropper.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .drop-zone {
+            border: 2px dashed #0d6efd;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background-color: #e9ecef;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            background-color: #cfe2ff;
+        }
+        .image-container {
+            max-height: 500px;
+            width: 100%;
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        img { max-width: 100%; }
+        .sidebar {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            height: 100%;
+        }
+        #queue-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .queue-item {
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .queue-item:hover { background-color: #f1f3f5; }
+        .queue-item.active { background-color: #e7f1ff; border-color: #0d6efd; }
+        .queue-item.done { opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col text-center">
+            <h2 class="fw-bold text-primary">📷 e-Okul Fotoğraf Küçültücü ve Kırpıcı</h2>
+            <p class="text-muted">MEB e-Okul standartlarına (133x171px, Min 20KB, Yüz Merkezli) otomatik uyarlar.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sidebar (Queue) -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <h5 class="fw-bold mb-3">📂 İşlem Kuyruğu</h5>
+                <div class="drop-zone mb-3" id="drop-zone">
+                    <p class="mb-0"><strong>Buraya Tıklayın</strong><br>veya fotoğrafları sürükleyin</p>
+                    <input type="file" id="file-input" multiple accept="image/*" class="d-none">
+                </div>
+                <div class="list-group" id="queue-list">
+                    <!-- Queue items go here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Editor -->
+        <div class="col-md-9">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" id="editor-title">Düzenleyici</h5>
+                    <div>
+                        <button class="btn btn-outline-secondary me-2" id="btn-skip" disabled>Atla ⏭️</button>
+                        <button class="btn btn-success" id="btn-save" disabled>Kaydet ve Sonrakine Geç 💾</button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="loading" class="text-center p-5 d-none">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2">Yüz Algılanıyor...</p>
+                    </div>
+                    <div id="no-image" class="text-center p-5 text-muted">
+                        Lütfen sol taraftan bir fotoğraf yükleyin.
+                    </div>
+                    <div class="image-container d-none" id="image-container">
+                        <img id="image" src="">
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-muted small" id="status-bar">
+                    Hazır. Fotoğraf bekleniyor...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="cropper.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
