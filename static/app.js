@@ -14,6 +14,15 @@ let queue = [];
 let currentIndex = -1;
 let cropper = null;
 
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // File Upload Handlers
 dropZone.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -43,7 +52,7 @@ function renderQueue() {
         div.className = `list-group-item queue-item ${index === currentIndex ? 'active' : ''} ${item.status === 'done' ? 'done text-success' : ''}`;
         div.innerHTML = `
             <div class="d-flex w-100 justify-content-between">
-                <h6 class="mb-1 text-truncate" style="max-width: 150px;">${item.file.name}</h6>
+                <h6 class="mb-1 text-truncate" style="max-width: 150px;">${escapeHtml(item.file.name)}</h6>
                 <small>${item.status === 'done' ? '✅' : (index === currentIndex ? '⏳' : '⌛')}</small>
             </div>
         `;
@@ -90,7 +99,7 @@ async function loadItem(index) {
         const data = await response.json();
         
         if (data.error) {
-            statusBar.innerHTML = `<span class="text-danger">Hata: ${data.error}</span>`;
+            statusBar.innerHTML = `<span class="text-danger">Hata: ${escapeHtml(data.error)}</span>`;
             loadingMsg.classList.add('d-none');
             return;
         }
@@ -132,7 +141,7 @@ async function loadItem(index) {
             }, 100);
         };
     } catch (e) {
-        statusBar.innerHTML = `<span class="text-danger">Bağlantı hatası: ${e.message}</span>`;
+        statusBar.innerHTML = `<span class="text-danger">Bağlantı hatası: ${escapeHtml(e.message)}</span>`;
         loadingMsg.classList.add('d-none');
     }
 }
@@ -166,13 +175,13 @@ btnSave.onclick = async () => {
         const data = await res.json();
         
         if (data.error) {
-            statusBar.innerHTML = `<span class="text-danger">Kayıt hatası: ${data.error}</span>`;
+            statusBar.innerHTML = `<span class="text-danger">Kayıt hatası: ${escapeHtml(data.error)}</span>`;
             btnSave.disabled = false;
             btnSkip.disabled = false;
         } else {
             // Success!
             const sizeKB = (data.size / 1024).toFixed(1);
-            statusBar.innerHTML = `<span class="text-success">✅ Kaydedildi! (${sizeKB} KB) -> ${data.path}</span>`;
+            statusBar.innerHTML = `<span class="text-success">✅ Kaydedildi! (${sizeKB} KB) -> ${escapeHtml(data.path)}</span>`;
             item.status = 'done';
             
             // Move to next
@@ -181,7 +190,7 @@ btnSave.onclick = async () => {
             }, 500);
         }
     } catch (e) {
-        statusBar.innerHTML = `<span class="text-danger">Kayıt hatası: ${e.message}</span>`;
+        statusBar.innerHTML = `<span class="text-danger">Kayıt hatası: ${escapeHtml(e.message)}</span>`;
         btnSave.disabled = false;
         btnSkip.disabled = false;
     }

@@ -4,7 +4,7 @@ import json
 import base64
 import cv2
 import numpy as np
-from PIL import Image, ExifTags
+from PIL import Image
 import bottle
 import webview
 import threading
@@ -92,8 +92,23 @@ def auto_crop_face(image_bytes):
 
     return {"x": int(crop_x), "y": int(crop_y), "width": int(desired_crop_w), "height": int(desired_crop_h), "face_found": True}, None
 
+ALLOWED_HOSTS = {"127.0.0.1:8090", "localhost:8090"}
+
+def is_local_request():
+    host = (bottle.request.get_header("Host") or "").lower()
+    if host not in ALLOWED_HOSTS:
+        return False
+    fetch_site = (bottle.request.get_header("Sec-Fetch-Site") or "").lower()
+    if fetch_site and fetch_site not in ("same-origin", "none"):
+        return False
+    return True
+
 @app.post('/api/detect')
 def api_detect():
+    if not is_local_request():
+        bottle.response.status = 403
+        return {"error": "Yetkisiz istek"}
+
     upload = bottle.request.files.get('image')
     if not upload:
         return {"error": "Resim yüklenmedi"}
@@ -106,12 +121,13 @@ def api_detect():
         
     b64_img = base64.b64encode(file_bytes).decode('utf-8')
     mime = "image/jpeg"
-    if upload.filename.lower().endswith(".png"): mime = "image/png"
+    safe_name = os.path.basename((upload.filename or "fotograf.jpg").replace("\\", "/"))
+    if safe_name.lower().endswith(".png"): mime = "image/png"
     
     return {
         "image_data": f"data:{mime};base64,{b64_img}",
         "crop_box": crop_box,
-        "filename": upload.filename
+        "filename": safe_name
     }
 
 def ensure_file_size(img, filepath):
@@ -139,23 +155,34 @@ bottle.BaseRequest.MEMFILE_MAX = 1024 * 1024 * 50
 
 @app.post('/api/save')
 def api_save():
+    if not is_local_request():
+        bottle.response.status = 403
+        return {"error": "Yetkisiz istek"}
+
     try:
         data = bottle.request.json
         if not data:
             return {"error": "Veri alınamadı veya çok büyük."}
         
         b64_data = data['image'].split(',')[1]
-        filename = data['filename']
+        raw_filename = str(data.get('filename', 'fotograf.jpg')).replace('\\', '/')
+        filename = os.path.basename(raw_filename)
+        if not filename or filename in ('.', '..'):
+            filename = 'fotograf.jpg'
         
-        base_name = os.path.splitext(filename)[0]
+        base_name = os.path.splitext(filename)[0] or 'fotograf'
         new_filename = base_name + "_eOkul.jpg"
         
-        desktop = os.path.join(os.environ["USERPROFILE"], "Desktop")
+        home_dir = os.environ.get("USERPROFILE") or os.path.expanduser("~")
+        desktop = os.path.join(home_dir, "Desktop")
         output_dir = os.path.join(desktop, "eOkul_Hazir_Fotograflar")
         if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
+            os.makedirs(output_dir, exist_ok=True)
             
         output_path = os.path.join(output_dir, new_filename)
+        if os.path.commonpath([os.path.realpath(output_dir), os.path.realpath(output_path)]) != os.path.realpath(output_dir):
+            bottle.response.status = 400
+            return {"error": "Geçersiz dosya adı."}
         
         img_bytes = base64.b64decode(b64_data)
         import io
